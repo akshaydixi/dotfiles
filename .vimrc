@@ -24,8 +24,14 @@ Plugin 'FelikZ/ctrlp-py-matcher'
 " Directory navigation
 Plugin 'scrooloose/nerdtree'
 
-" Display ctags
-Plugin 'majutsushi/tagbar'
+" Python shell
+Plugin 'ivanov/vim-ipython'
+
+" Json plugin
+Plugin 'elzr/vim-json'
+"
+" Auto-completion
+Plugin 'Valloric/YouCompleteMe'
 
 " Surround tag completion
 Plugin 'tpope/vim-surround'
@@ -40,8 +46,8 @@ Plugin 'bronson/vim-trailing-whitespace'
 Plugin 'fholgado/minibufexpl.vim'
 
 " Status line
-"Plugin 'bling/vim-airline'
-"Plugin 'paranoida/vim-airlineish'
+Plugin 'bling/vim-airline'
+Plugin 'paranoida/vim-airlineish'
 
 " Color schemes
 Plugin 'altercation/vim-colors-solarized'
@@ -70,6 +76,7 @@ set tabstop=2 shiftwidth=2 softtabstop=2 expandtab   " Expand tabs to spaces
 set nofoldenable        " Don't use folds
 set number              " Show line numbers by default
 set laststatus=2        " Always show the status bar
+set listchars=tab:▸\ ,eol:¬  " Show tabs, end-of-line as special characters with :set list
 set nopaste             " Don't auto-indent when pasting from clipboard
                         " On downside, seems to affect whether plugins can trigger
 
@@ -77,17 +84,18 @@ set nopaste             " Don't auto-indent when pasting from clipboard
 " For powerline / airline
 "----------------------------------------------------------
 set t_Co=256
-" Pretty slow :(
-"set guifont=Inconsolata\ for\ Powerline
-"let g:airline_theme = 'airlineish'
-"let g:airline_powerline_fonts = 1
-"if !exists('g:airline_symbols')
-"  let g:airline_symbols = {}
-"endif
-"let g:airline_left_sep = '»'
-"let g:airline_left_sep = '▶'
-"let g:airline_right_sep = '«'
-"let g:airline_right_sep = '◀'
+set guifont=Inconsolata\ for\ Powerline
+let g:airline_theme = 'airlineish'
+let g:airline_powerline_fonts = 1
+if !exists('g:airline_symbols')
+  let g:airline_symbols = {}
+endif
+let g:airline_symbols.space = "\ua0"
+" unicode symbols
+let g:airline_left_sep = '»'
+let g:airline_left_sep = '▶'
+let g:airline_right_sep = '«'
+let g:airline_right_sep = '◀'
 
 "let g:airline#extensions#tabline#enabled = 1
 
@@ -95,6 +103,12 @@ set t_Co=256
 " For NERD Tree
 "----------------------------------------------------------
 map <C-n> :NERDTreeToggle<CR>
+
+autocmd StdinReadPre * let s:std_in=1    " Open NERDTree automatically on startup if no files were specified
+autocmd VimEnter * if argc() == 0 && !exists("s:std_in") | NERDTree | endif
+
+let g:NERDTreeDirArrowExpandable = '▸'
+let g:NERDTreeDirArrowCollapsible = '▾'
 
 "----------------------------------------------------------
 " For CtrlP
@@ -127,6 +141,20 @@ let g:ctrlp_follow_symlinks=1
 let g:ctrlp_clear_cache_on_exit=0
 
 "----------------------------------------------------------
+" For YouCompleteMe, with logging at :YcmDebugInfo
+"----------------------------------------------------------
+
+let g:ycm_global_ycm_extra_conf = ' /home/akshayd/.vim/bundle/YouCompleteMe/third_party/ycmd/cpp/ycm/.ycm_extra_conf.py'
+let g:ycm_confirm_extra_conf = 0
+let g:ycm_server_keep_logfiles = 1
+let g:ycm_server_log_level = 'debug'
+let g:ycm_key_list_select_completion = ['<TAB>', '<C-TAB>', '<Down>']
+let g:ycm_key_list_previous_completion = ['<C-S-TAB>', '<Up>']
+let g:ycm_autoclose_preview_window_after_insertion = 1
+let g:ycm_use_ultisnips_completer = 0
+
+
+"----------------------------------------------------------
 " For using solarized
 "----------------------------------------------------------
 let g:solarized_termcolors=256
@@ -140,6 +168,15 @@ let g:miniBufExplMapWindowNavVim = 1
 let g:miniBufExplMapWindowNavArrows = 1
 let g:miniBufExplMapCTabSwitchBufs = 1
 let g:miniBufExplModSelTarget = 1
+
+" MiniBufExpl Colors
+hi MBENormal               guifg=#808080 guibg=fg
+hi MBEChanged              guifg=#CD5907 guibg=fg
+hi MBEVisibleNormal        guifg=#5DC2D6 guibg=fg
+hi MBEVisibleChanged       guifg=#F1266F guibg=fg
+hi MBEVisibleActiveNormal  guifg=#A6DB29 guibg=fg
+hi MBEVisibleActiveChanged guifg=#F1266F guibg=fg
+
 nnoremap <leader>] :MBEbn<CR>
 nnoremap <leader>[ :MBEbp<CR>
 
@@ -157,7 +194,7 @@ autocmd VimEnter,Colorscheme * :hi IndentGuidesEven ctermbg=235
 " Shortcuts
 "----------------------------------------------------------
 command! Ig IndentGuidesToggle          " Toggle on/off indentation helper lines
-command! Fw FixWhitespace               " Remove end-of-line whitespace
+command! Fix FixWhitespace               " Remove end-of-line whitespace
 command! TT TagbarToggle                " Show tags in file
 command! Go YcmCompleter GoToImprecise  " Jump to definition of code
 command! Compile YcmForceCompileAndDiagnostics  " Compile for you complete me
@@ -165,8 +202,13 @@ command! Compile YcmForceCompileAndDiagnostics  " Compile for you complete me
 " Toggle paste mode (prefer this over 'pastetoggle' to echo current state)
 nmap <leader>p :setlocal paste! paste?<cr>
 
-" open the Tagbar window, jump to it, and have it close automatically on tag selection
-noremap <silent> <F9> :TagbarOpenAutoClose<CR>
+
+" Save myself from random typos
+cab Wq wq
+cab WQ wq
+cab wQ wq
+cab W w
+cab Q q
 
 
 if has('statusline')
@@ -205,25 +247,3 @@ function! FoldPreprocessor()
   set foldmethod=marker
 endfunction
 
-
-nmap <C-s> :w!<CR> " Save
-nmap <C-x> :q<CR>  " Exit
-nmap <c-s> :w<CR>
-cab Wq wq
-cab WQ wq
-cab wQ wq
-cab W w
-cab Q q
-
-if has('gui_running')
-  " i like about 80 character width lines
-
-  set textwidth=78
-  "  2 for the command line
-  set lines=52
-  " add columns for the Project plugin
-
-  set columns=110
-  " enable use of mouse
-  set mouse=a
-endif
